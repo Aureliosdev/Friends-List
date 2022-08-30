@@ -38,9 +38,16 @@ class ViewController: UIViewController {
     
     private func fetchPeople() {
 
+        
         //Fetch the data form Core Data to display in the tableview
         do {
-            self.items = try context.fetch(Person.fetchRequest())
+            let request = Person.fetchRequest() as NSFetchRequest<Person>
+            
+            //set the filtering and sorting on the request
+            let pred = NSPredicate(format: "name CONTAINS 'Teddy' ")
+            request.predicate = pred
+            
+            self.items = try context.fetch(request)
             DispatchQueue.main.async {
                 self.tableView.reloadData()
             }
@@ -92,8 +99,10 @@ class ViewController: UIViewController {
             //Re fetch the data
             self.fetchPeople()
         }
+        //Add button
         alert.addAction(submitButton)
         
+        //Show alert
         self.present(alert, animated: true,completion: nil)
         }
     
@@ -121,6 +130,65 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         cell.textLabel?.text = person.name
         return cell
     }
+    
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        //Select person
+        let person =  self.items![indexPath.row]
+        
+        //Create alert
+        let alert = UIAlertController(title: "Edit person", message: "Edit name ", preferredStyle: .alert)
+        alert.addTextField()
+        let textfield = alert.textFields![0]
+        textfield.text = person.name
+        
+        let saveButton = UIAlertAction(title: "Save", style: .default) { (action) in
+            //Get the textfield for the alert
+            let textfield  = alert.textFields![0]
+            
+            //Edit name property or person
+            person.name = textfield.text
+            //Save the data
+            do {
+                try self.context.save()
+            } catch {
+                
+            }
+            //Re fetch the data
+            self.fetchPeople()
+        }
 
+            //add button
+        alert.addAction(saveButton)
+        
+        //Show alert
+        self.present(alert, animated: true,completion: nil)
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        //Create swipe action
+        let action = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            //Which person to remove
+            let personToRemove = self.items![indexPath.row]
+            
+            //Remove the person
+            self.context.delete(personToRemove)
+            
+            //Save the data
+            do {
+            try self.context.save()
+                
+            } catch {
+                
+            }
+            //Re fetch the data
+            self.fetchPeople()
+            
+            }
+        
+        
+        //Return swipe action
+        return UISwipeActionsConfiguration(actions: [action])
+    }
     
 }
