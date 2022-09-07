@@ -32,8 +32,8 @@ class ViewController: UIViewController {
         addingTopButton()
         
         tableView.delegate = self
-      tableView.dataSource = self
-      fetchPeople()
+        tableView.dataSource = self
+        fetchPeople()
     }
     
     private func fetchPeople() {
@@ -44,8 +44,11 @@ class ViewController: UIViewController {
             let request = Person.fetchRequest() as NSFetchRequest<Person>
             
             //set the filtering and sorting on the request
-            let pred = NSPredicate(format: "name CONTAINS 'Teddy' ")
-            request.predicate = pred
+//            let pred = NSPredicate(format: "name CONTAINS %@", "Teddy")
+//            request.predicate = pred
+            
+            let sort = NSSortDescriptor(key: "name", ascending: true)
+            request.sortDescriptors = [sort]
             
             self.items = try context.fetch(request)
             DispatchQueue.main.async {
